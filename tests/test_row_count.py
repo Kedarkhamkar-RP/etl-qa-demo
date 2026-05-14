@@ -23,6 +23,6 @@ def test_row_count():
    #print(f"Target Count: {target_count}")
  
    source_count = 0
-   target_count = 0
+   target_count = 1
  
    assert source_count == target_count
