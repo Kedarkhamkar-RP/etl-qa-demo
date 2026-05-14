@@ -9,9 +9,11 @@ def get_connection():
        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
       f"SERVER={os.getenv('DB_SERVER')};"
       f"DATABASE={os.getenv('DB_NAME')};"
-      f"Authentication=ActiveDirectoryInteractive;"
-      f"Encrypt=yes;"
-      f"TrustServerCertificate=yes;"
+      f"UID={os.getenv('DB_USER')};"
+      f"PWD={os.getenv('DB_PASSWORD')};"
+      #f"Authentication=ActiveDirectoryInteractive;"
+      #f"Encrypt=yes;"
+      #f"TrustServerCertificate=yes;"
    )
  
    return conn
