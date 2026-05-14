@@ -1,38 +1,72 @@
 trigger:
 - main
- 
+
 pool:
   vmImage: 'ubuntu-latest'
- 
+
+variables:
+  SQL_SERVER: 't-usce-rp-msqs-gs-mdm01.database.windows.net'
+  SQL_DATABASE: 't-usce-rp-msqd-gs-mdm01'
+  SQL_USER: 'mdm_db_usr'
+  SQL_PASSWORD: 'bET2tw6hqkMxzmI7'
+
 steps:
- 
+
+# Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.12'
- 
+
+# Install SQL tools + ODBC driver
 - script: |
     curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
     curl -sSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+
     sudo apt-get update
-    sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
-  displayName: Install Microsoft ODBC Driver for SQL Server
- 
+
+    sudo ACCEPT_EULA=Y apt-get install -y \
+      msodbcsql18 \
+      mssql-tools18 \
+      unixodbc-dev
+
+    echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
+    source ~/.bashrc
+  displayName: Install SQL Server tools
+
+# Install Python dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
   displayName: Install dependencies
- 
+
+# DNS check
+- script: |
+    nslookup $(SQL_SERVER)
+  displayName: Check DNS
+
+# Port connectivity check
+- script: |
+    nc -zv $(SQL_SERVER) 1433
+  displayName: Check SQL Port Connectivity
+
+# SQL connection test
+- script: |
+    /opt/mssql-tools18/bin/sqlcmd \
+      -S $(SQL_SERVER) \
+      -d $(SQL_DATABASE) \
+      -U "$(SQL_USER)" \
+      -P "$(SQL_PASSWORD)" \
+      -Q "SELECT @@VERSION"
+  displayName: Test SQL Connection
+
+# Run tests
 - script: |
     pytest --html=reports/report.html --self-contained-html || true
   displayName: Run QA Tests
- 
+
+# Publish report
 - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: 'reports'
     artifactName: 'QA-Reports'
-    
-- script: nslookup yourserver.database.windows.net
-  displayName: "Check DNS"
 
-- script: powershell Test-NetConnection yourserver.database.windows.net -Port 1433
-  displayName: "Check SQL port connectivity"
