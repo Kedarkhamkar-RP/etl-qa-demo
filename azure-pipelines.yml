@@ -30,3 +30,9 @@ steps:
   inputs:
     pathToPublish: 'reports'
     artifactName: 'QA-Reports'
+    
+- script: nslookup yourserver.database.windows.net
+  displayName: "Check DNS"
+
+- script: powershell Test-NetConnection yourserver.database.windows.net -Port 1433
+  displayName: "Check SQL port connectivity"
