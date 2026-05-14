@@ -1,0 +1,25 @@
+trigger:
+- main
+ 
+pool:
+  vmImage: 'ubuntu-latest'
+ 
+steps:
+ 
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.12'
+ 
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: Install dependencies
+ 
+- script: |
+    pytest --html=reports/report.html --self-contained-html
+  displayName: Run QA Tests
+ 
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: 'reports'
+    artifactName: 'QA-Reports'
