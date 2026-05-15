@@ -1,0 +1,36 @@
+trigger:
+- main
+ 
+pool:
+  vmImage: 'ubuntu-latest'
+ 
+steps:
+ 
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.12'
+ 
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: Install dependencies
+ 
+#- script: |
+#    curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+#    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+ 
+#    sudo apt-get update
+ 
+#    sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+ 
+#    sudo apt-get install -y unixodbc-dev
+#  displayName: Install SQL ODBC Driver
+ 
+- script: |
+    pytest tests\test_provider_rad_roster_view.py --html=reports/report.html --self-contained-html || true
+  displayName: Run QA Tests
+ 
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: 'reports'
+    artifactName: 'QA-Reports'
